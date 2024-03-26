@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "363870034801",
+    "project_id": "bloodpoint-9dd33",
+    "storage_bucket": "bloodpoint-9dd33.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:363870034801:android:5e6182b25afa1eb370f4d0",
+        "android_client_info": {
+          "package_name": "com.example.blood_donor"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBo-urwWr_xHNKNM-xndNdxUoyxEz9xhpg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,33 +1,53 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import 'package:velocity_x/velocity_x.dart';
 
 import '../chat/chat_screen.dart';
 
-class AllDonorsScreen extends StatefulWidget {
-  const AllDonorsScreen({super.key});
+class NearbyDonorsScreen extends StatefulWidget {
+  const NearbyDonorsScreen({super.key});
 
   @override
-  State<AllDonorsScreen> createState() => _AllDonorsScreenState();
+  State<NearbyDonorsScreen> createState() => _NearbyDonorsScreenState();
 }
 
-class _AllDonorsScreenState extends State<AllDonorsScreen> {
+class _NearbyDonorsScreenState extends State<NearbyDonorsScreen> {
   TextEditingController searchController = TextEditingController();
   String searchText = "";
 //
 //
+  List<DocumentSnapshot> _lawyers = [];
 
-  String selectedCategory = ''; // 0 represents no selection
+  Future<void> _fetchNearestDonors() async {
+    Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high);
+    double userLatitude = position.latitude;
+    double userLongitude = position.longitude;
 
-  void selectExperience(years) {
+    var snapshots = await FirebaseFirestore.instance
+        .collection('donors')
+        .orderBy('username')
+        .startAt([searchText.toUpperCase()]).endAt(['$searchText\uf8ff']).get();
     setState(() {
-      selectedCategory = years;
+      _lawyers = snapshots.docs.where((doc) {
+        double lawyerLatitude = doc['latitude'];
+        double lawyerLongitude = doc['longitude'];
+        double distance = Geolocator.distanceBetween(
+          userLatitude,
+          userLongitude,
+          lawyerLatitude,
+          lawyerLongitude,
+        );
+        return distance <= 25000; // 25 km in meters
+      }).toList();
     });
   }
 
-  bool isSelected = false;
+
+
 
   List<String> experience = [
     'A+',
@@ -38,6 +58,11 @@ class _AllDonorsScreenState extends State<AllDonorsScreen> {
     'B-',
     'O-',
   ];
+  @override
+  void initState() {
+    _fetchNearestDonors();
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -63,9 +88,9 @@ class _AllDonorsScreenState extends State<AllDonorsScreen> {
                 ),
               ),
             ),
-            SizedBox(width: Get.width * .2),
+            SizedBox(width: Get.width * .18),
             const Text(
-              'All Donors',
+              'Nearby Donors',
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: Color(0xFF1A1A1A),
@@ -85,7 +110,6 @@ class _AllDonorsScreenState extends State<AllDonorsScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               16.heightBox,
-
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 decoration: BoxDecoration(
@@ -99,9 +123,15 @@ class _AllDonorsScreenState extends State<AllDonorsScreen> {
                       hintText: 'Search for donors',
                       border: InputBorder.none,
                       prefixIcon: (searchText.isEmpty)
-                          ? const Icon(Icons.search,color: Colors.red,)
+                          ? const Icon(
+                              Icons.search,
+                              color: Colors.red,
+                            )
                           : IconButton(
-                              icon: const Icon(Icons.clear,color: Colors.red,),
+                              icon: const Icon(
+                                Icons.clear,
+                                color: Colors.red,
+                              ),
                               onPressed: () {
                                 searchText = '';
                                 searchController.clear();
@@ -118,119 +148,13 @@ class _AllDonorsScreenState extends State<AllDonorsScreen> {
                       });
                     }),
               ),
-
-              // const SizedBox(
-              //   height: 12,
-              // ),
-
-              const SizedBox(height: 24),
-              SizedBox(
-                height: 30,
-                child: Row(
-                  children: [
-                    InkWell(
-                      onTap: () {
-                        setState(() {
-                          selectedCategory = '';
-                        });
-                      },
-                      child: Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 4),
-                        decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(33),
-                            color: Colors.black),
-                        height: 44,
-                        width: 59,
-                        child: const Center(
-                            child: Text(
-                          'All',
-                          style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500),
-                        )),
-                      ),
-                    ),
-                    Expanded(
-                      child: ListView.builder(
-                          physics: const BouncingScrollPhysics(),
-                          itemCount: experience.length,
-                          shrinkWrap: true,
-                          scrollDirection: Axis.horizontal,
-                          itemBuilder: (context, index) {
-                            return InkWell(
-                              onTap: () {
-                                selectExperience(experience[index]);
-                              },
-                              child: Container(
-                                margin:
-                                    const EdgeInsets.symmetric(horizontal: 4),
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(16),
-                                  color:
-                                      //  isSelected==true
-                                      //     ? Colors.grey.shade400
-                                      //     :
-                                      Colors.redAccent,
-                                ),
-                                height: 30,
-                                width: 59,
-                                child: Center(
-                                    child: Text(
-                                  experience[index],
-                                  style: const TextStyle(
-                                      color:
-                                          //  isSelected
-                                          //     ? Colors.white
-                                          //     :
-                                          Colors.white,
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w500),
-                                )),
-                              ),
-                            );
-                          }),
-                    ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 20),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-                height: 34,
-                decoration: ShapeDecoration(
-                  shape: RoundedRectangleBorder(
-                    side: const BorderSide(width: 1, color: Color(0xFFD3D3D3)),
-                    borderRadius: BorderRadius.circular(5),
-                  ),
-                ),
-                child: Text(
-                  selectedCategory == ''
-                      ? 'All Donors'
-                      : 'Donors with $selectedCategory blood group',
-                  style: const TextStyle(
-                    color: Color(0xFF535353),
-                    fontSize: 13,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
-
               const SizedBox(height: 14),
               StreamBuilder(
-                  stream: selectedCategory == ''
-                      ? FirebaseFirestore.instance
-                          .collection('donors')
-                          .orderBy('username')
-                          .startAt([searchText.toUpperCase()]).endAt(
-                              ['$searchText\uf8ff']).snapshots()
-                      : FirebaseFirestore.instance
-                          .collection('donors')
-                          .orderBy('username')
-                          .where('category', isEqualTo: selectedCategory)
-                          .startAt([searchText.toUpperCase()]).endAt(
-                              ['$searchText\uf8ff']).snapshots(),
+                  stream: FirebaseFirestore.instance
+                      .collection('donors')
+                      .orderBy('username')
+                      .startAt([searchText.toUpperCase()]).endAt(
+                          ['$searchText\uf8ff']).snapshots(),
                   builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return const Center(
@@ -242,12 +166,12 @@ class _AllDonorsScreenState extends State<AllDonorsScreen> {
                       return Text('Error: ${snapshot.error}');
                     } else if (!snapshot.hasData ||
                         snapshot.data!.docs.isEmpty) {
-                      return  Center(
+                      return const Center(
                           child: Padding(
-                        padding: const EdgeInsets.only(top: 233),
+                        padding:  EdgeInsets.only(top: 233),
                         child: Text(
-                          'No donors Registered yet with $selectedCategory ',
-                          style: const TextStyle(
+                          'No donors Registered yet with  ',
+                          style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.w400,
                               color: Colors.redAccent),
@@ -258,14 +182,13 @@ class _AllDonorsScreenState extends State<AllDonorsScreen> {
                         shrinkWrap: true,
                         physics: const BouncingScrollPhysics(),
                         padding: EdgeInsets.zero,
-                        itemCount: snapshot.data?.docs.length ?? 0,
+                        itemCount: _lawyers.length,
                         itemBuilder: (context, index) {
-                          final e = snapshot.data!.docs[index];
+                          final e = _lawyers[index];
                           if (e["username"]
                               .toString()
                               .toLowerCase()
                               .contains(searchText.toLowerCase())) {
-                          
                             return Card(
                                 shadowColor: Colors.black,
                                 color: Colors.white,
@@ -344,39 +267,52 @@ class _AllDonorsScreenState extends State<AllDonorsScreen> {
                                                           ],
                                                         ),
                                                       ),
-                                                GestureDetector(
-                                          onTap: () {
-                                            Get.to(() => ChatScreen(
-                                                  fcmToken: e['fcmToken'],
-                                                  name: e['username'],
-                                                  image: e['image'],
-                                                  uid: e['donorId'],
-                                                  groupId: FirebaseAuth.instance
-                                                      .currentUser!.uid,
-                                                ));
-                                          },
-                                          child: Container(
-                                            margin: const EdgeInsets.only(
-                                                left: 4),
-                                            width: 82,
-                                            height: 28,
-                                            decoration: BoxDecoration(
-                                              color: Colors.redAccent,
-                                              borderRadius:
-                                                  BorderRadius.circular(44),
-                                            ),
-                                            child: const Center(
-                                              child: Text(
-                                                'Chat Now',
-                                                style: TextStyle(
-                                                  color: Colors.white,
-                                                  fontSize: 13,
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                                    
+                                                      GestureDetector(
+                                                        onTap: () {
+                                                          Get.to(() =>
+                                                              ChatScreen(
+                                                                fcmToken: e[
+                                                                    'fcmToken'],
+                                                                name: e[
+                                                                    'username'],
+                                                                image:
+                                                                    e['image'],
+                                                                uid: e[
+                                                                    'donorId'],
+                                                                groupId: FirebaseAuth
+                                                                    .instance
+                                                                    .currentUser!
+                                                                    .uid,
+                                                              ));
+                                                        },
+                                                        child: Container(
+                                                          margin:
+                                                              const EdgeInsets
+                                                                  .only(
+                                                                  left: 4),
+                                                          width: 82,
+                                                          height: 28,
+                                                          decoration:
+                                                              BoxDecoration(
+                                                            color: Colors
+                                                                .redAccent,
+                                                            borderRadius:
+                                                                BorderRadius
+                                                                    .circular(
+                                                                        44),
+                                                          ),
+                                                          child: const Center(
+                                                            child: Text(
+                                                              'Chat Now',
+                                                              style: TextStyle(
+                                                                color: Colors
+                                                                    .white,
+                                                                fontSize: 13,
+                                                              ),
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      ),
                                                     ],
                                                   ),
                                                 ],
@@ -384,7 +320,6 @@ class _AllDonorsScreenState extends State<AllDonorsScreen> {
                                             ),
                                           ],
                                         ),
-                                       
                                       ],
                                     ),
                                   ),

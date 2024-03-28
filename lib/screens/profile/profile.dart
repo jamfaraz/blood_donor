@@ -1,3 +1,4 @@
+import 'package:blood_donor/screens/profile/my_requests.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -245,6 +246,38 @@ class _ProfileState extends State<Profile> {
                                                   20.widthBox,
                                                   const Text(
                                                     'About',
+                                                    style: TextStyle(
+                                                      fontSize: 14,
+                                                      color: Colors.black,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+                                            10.heightBox,
+                                          GestureDetector(
+                                            onTap: () {
+                                              Get.to(()=> const MyRequestScreen());
+                                            },
+                                            child: Container(
+                                              height: 42,
+                                              padding: const EdgeInsets.only(
+                                                left: 10,
+                                                right: 10,
+                                              ),
+                                              width: double.infinity,
+                                              decoration: const BoxDecoration(
+                                                color: Colors.white,
+                                              ),
+                                              child: Row(
+                                                children: [
+                                                   Icon(Icons.payment_outlined,
+                                                color: Colors.red.shade400,
+                                                  ),
+                                                  20.widthBox,
+                                                  const Text(
+                                                    'My requests',
                                                     style: TextStyle(
                                                       fontSize: 14,
                                                       color: Colors.black,

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:blood_donor/controllers/notification.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -5,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
 import 'package:ndialog/ndialog.dart';
+import 'package:uuid/uuid.dart';
 
 import '../../controllers/profile_controller.dart';
 
@@ -22,13 +25,35 @@ class _PostRequestScreenState extends State<PostRequestScreen> {
 
   TextEditingController postController = TextEditingController();
   TextEditingController addressController = TextEditingController();
+  TextEditingController contactController = TextEditingController();
 
-  void addPost({required String post, required String address}) async {
+  final _categories = <String>[
+    'A+',
+    'B+',
+    'O+',
+    'AB',
+    'A-',
+    'B-',
+    'O-',
+  ];
+           
+  String? _category;
+
+  void addPost(
+      {required String post,
+      required String address,
+      required String category,
+      required String contact}) async {
     ProgressDialog progressDialog = ProgressDialog(context,
         message: const Text('Please wait'), title: null);
     try {
       progressDialog.show();
 
+      progressDialog.show();
+      User? user = FirebaseAuth.instance.currentUser;
+      String uid = user!.uid;
+      var uuid = const Uuid();
+      var myId = uuid.v6();
       DocumentSnapshot<Map<String, dynamic>> document = await FirebaseFirestore
           .instance
           .collection('users')
@@ -37,31 +62,63 @@ class _PostRequestScreenState extends State<PostRequestScreen> {
       final data = document.data()!;
       String userName = data['username'];
       String image = data['image'];
+      String fcmToken = data['fcmToken'];
       //
       //
-      setState(() {
-        name=userName;
-      });
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(FirebaseAuth.instance.currentUser!.uid)
-          .collection('posts')
-          .add({
-        'userId': FirebaseAuth.instance.currentUser!.uid,
-        'name': userName,
-        'post': post,
+      await FirebaseFirestore.instance.collection('posts').doc(myId).set({
+        'postId': myId,
+        'userId': uid,
+        'username': userName,
+        'contact': contact,
         'image': image,
+        'category': category,
         'address': address,
+        'fcmToken': fcmToken,
+        'post': post,
         'time': DateTime.now(),
       });
-      
+
       progressDialog.dismiss();
+      QuerySnapshot querySnapshot =
+          await FirebaseFirestore.instance.collection('donors').get();
+      for (var doc in querySnapshot.docs) {
+        String fcmToken = doc['fcmToken'];
+
+        LocalNotificationService.sendNotification(
+            title: '$userName added a new post',
+            message: postController.text,
+            token: fcmToken);
+      }
       Fluttertoast.showToast(msg: 'Your post added sucessfully');
     } catch (e) {
       progressDialog.dismiss();
 
       Fluttertoast.showToast(msg: 'Something went wrong');
     }
+  }
+
+  Future<void> deletePost(String postId) async {
+    try {
+      await FirebaseFirestore.instance.collection('posts').doc(postId).delete();
+      Fluttertoast.showToast(msg: 'Post deleted successfully.');
+    } catch (e) {
+      Fluttertoast.showToast(msg: 'Error deleting post: $e');
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    Timer(const Duration(minutes: 10), () {
+      FirebaseFirestore.instance
+          .collection('posts')
+          .get()
+          .then((querySnapshot) {
+        for (var doc in querySnapshot.docs) {
+          deletePost(doc.id);
+        }
+      });
+    });
   }
 
   @override
@@ -98,7 +155,7 @@ class _PostRequestScreenState extends State<PostRequestScreen> {
                   ),
                 ),
                 const SizedBox(
-                  height: 8,
+                  height: 6,
                 ),
                 TextFormField(
                   controller: postController,
@@ -107,15 +164,15 @@ class _PostRequestScreenState extends State<PostRequestScreen> {
                   decoration: InputDecoration(
                       contentPadding: EdgeInsets.symmetric(
                           vertical: MediaQuery.of(context).size.width * 0.030,
-                          horizontal: 6),
+                          horizontal: 9),
                       enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(4),
+                        borderRadius: BorderRadius.circular(8),
                         borderSide: const BorderSide(
                           color: Colors.black45,
                         ),
                       ),
                       focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(4),
+                        borderRadius: BorderRadius.circular(8),
                         borderSide: const BorderSide(
                           color: Colors.black,
                         ),
@@ -128,10 +185,10 @@ class _PostRequestScreenState extends State<PostRequestScreen> {
                       isDense: true,
                       hintText: 'Enter your post',
                       border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(4))),
+                          borderRadius: BorderRadius.circular(8))),
                 ),
                 const SizedBox(
-                  height: 12,
+                  height: 8,
                 ),
                 const Text(
                   'Address',
@@ -142,7 +199,7 @@ class _PostRequestScreenState extends State<PostRequestScreen> {
                   ),
                 ),
                 const SizedBox(
-                  height: 8,
+                  height: 6,
                 ),
                 TextFormField(
                   controller: addressController,
@@ -150,15 +207,15 @@ class _PostRequestScreenState extends State<PostRequestScreen> {
                   decoration: InputDecoration(
                       contentPadding: EdgeInsets.symmetric(
                           vertical: MediaQuery.of(context).size.width * 0.030,
-                          horizontal: 6),
+                          horizontal: 9),
                       enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(4),
+                        borderRadius: BorderRadius.circular(8),
                         borderSide: const BorderSide(
                           color: Colors.black45,
                         ),
                       ),
                       focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(4),
+                        borderRadius: BorderRadius.circular(8),
                         borderSide: const BorderSide(
                           color: Colors.black,
                         ),
@@ -171,14 +228,108 @@ class _PostRequestScreenState extends State<PostRequestScreen> {
                       isDense: true,
                       hintText: 'Enter your address',
                       border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(4))),
+                          borderRadius: BorderRadius.circular(8))),
+                ),
+                const SizedBox(
+                  height: 8,
+                ),
+                const Text(
+                  'Contact',
+                  style: TextStyle(
+                    color: Color(0xFF3D3D3D),
+                    fontSize: 15,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(
+                  height: 6,
+                ),
+                TextFormField(
+                  controller: contactController,
+                  cursorColor: Colors.red,
+                  decoration: InputDecoration(
+                      contentPadding: EdgeInsets.symmetric(
+                          vertical: MediaQuery.of(context).size.width * 0.030,
+                          horizontal: 9),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: const BorderSide(
+                          color: Colors.black45,
+                        ),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: const BorderSide(
+                          color: Colors.black,
+                        ),
+                      ),
+                      hintStyle: const TextStyle(
+                        color: Color(0xFF828A89),
+                        fontSize: 14,
+                        fontWeight: FontWeight.w400,
+                      ),
+                      isDense: true,
+                      hintText: 'Enter your contact',
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8))),
+                ),
+                const SizedBox(
+                  height: 10,
+                ),
+                const Text(
+                  'Blood group',
+                  style: TextStyle(
+                    color: Color(0xFF3D3D3D),
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(
+                  height: 5,
+                ),
+                DropdownButtonFormField<String>(
+                  decoration: InputDecoration(
+                    contentPadding: EdgeInsets.symmetric(
+                      vertical: MediaQuery.of(context).size.width * 0.030,horizontal: 9
+                    ),
+                    // prefixIcon: const Icon(Icons.category, color: Colors.black),
+                    hintText: 'Select group',
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: const BorderSide(
+                        color: Colors.black45,
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: const BorderSide(
+                        color: Colors.black,
+                      ),
+                    ),
+                  ),
+                  value: _category,
+                  onChanged: (value) {
+                    setState(() {
+                      _category = value;
+                    });
+                  },
+                  items: _categories
+                      .map(
+                        (e) => DropdownMenuItem(
+                          value: e,
+                          child: Text(e),
+                        ),
+                      )
+                      .toList(),
                 ),
                 SizedBox(
-                  height: Get.height * .16,
+                  height: Get.height * .12,
                 ),
                 InkWell(
                   onTap: () async {
                     if (postController.text.isEmpty ||
+                        contactController.text.isEmpty ||
+                        _category.toString().isEmpty ||
                         addressController.text.isEmpty) {
                       Get.snackbar(
                         "Error",
@@ -187,25 +338,18 @@ class _PostRequestScreenState extends State<PostRequestScreen> {
                     } else {
                       addPost(
                           post: postController.text,
-                          address: addressController.text);
-                    }
-                    postController.clear();
+                          address: addressController.text,
+                          category: _category.toString(),
+                          contact: contactController.text);
+                          // 
+                          // 
+                           postController.clear();
                     addressController.clear();
-
-                    QuerySnapshot querySnapshot = await FirebaseFirestore
-                        .instance
-                        .collection('donors')
-                        .get();
-                    for (var doc in querySnapshot.docs) {
-                      String fcmToken = doc['fcmToken'];
-
-                      LocalNotificationService.sendNotification(
-                          title: '$name added a new post',
-                          message: postController.text,
-                          token: fcmToken);
+                    contactController.clear();
+                      //
+                      //
                     }
-
-                    
+                   
                   },
                   child: Container(
                     height: 49,

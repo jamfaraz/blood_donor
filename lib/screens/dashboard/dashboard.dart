@@ -1,5 +1,7 @@
 import 'package:blood_donor/screens/chat/chats.dart';
+import 'package:blood_donor/screens/dashboard/all_donors.dart';
 import 'package:blood_donor/screens/dashboard/post_request_screen.dart';
+import 'package:blood_donor/screens/dashboard/search_donors.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -8,7 +10,6 @@ import '../../../../controllers/auth_controller.dart';
 import '../../../../controllers/data_controller.dart';
 import '../../../../controllers/notification.dart';
 import 'home_screen.dart';
-import 'my_requests.dart';
 import '../profile/profile.dart';
 
 
@@ -53,7 +54,7 @@ class _DashboardState extends State<Dashboard>
           MessageView(),
           
           PostRequestScreen(),
-          MyRequestScreen(),
+          SearchDonorsScreen(),
           Profile(),
         ],
       ),
@@ -100,13 +101,13 @@ class _DashboardState extends State<Dashboard>
             backgroundColor: Colors.white,
           ),
           BottomNavigationBarItem(
-            icon: Icon(
-              Icons.info_outline,
-              size: 30,
+            icon:Image.asset(
+              'assets/search.png',
+              height: 24,
               color: selectedIndex == 3 ? Colors.black : Colors.grey,
             ),
             backgroundColor: Colors.white,
-            label: 'My Posts',
+            label: 'Search',
           ),
           BottomNavigationBarItem(
             icon: Image.asset(

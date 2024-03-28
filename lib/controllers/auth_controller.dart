@@ -149,8 +149,8 @@ class AuthController extends GetxController {
         password: password,
         city: city,
         contact: contact,
-        longitude: location.longitude.toString(),
-        latitude: location.latitude.toString(),
+        longitude: location.longitude,
+        latitude: location.latitude,
       );
 
       if (userCredential.user != null) {

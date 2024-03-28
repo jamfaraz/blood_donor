@@ -24,25 +24,47 @@ class _UserNotificationScreenState extends State<UserNotificationScreen> {
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        title: const Text(
-          'Notifications',
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            color: Color(0xFF1A1A1A),
-            fontSize: 20,
-            fontWeight: FontWeight.w600,
-          ),
+        title: Row(
+          children: [
+            IconButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              icon: Container(
+                height: 30,
+                width: 30,
+                decoration:  BoxDecoration(
+                  color: Colors.red.shade400,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.arrow_back_ios_new,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+            SizedBox(width: Get.width * .2),
+            const Text(
+              'Notifications',
+              style: TextStyle(
+                color: Color(0xFF1A1A1A),
+                fontSize: 20,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
         ),
         centerTitle: true,
         // elevation: 4,
       ),
       body: Padding(
-        padding: const EdgeInsets.all(12.0),
+        padding: const EdgeInsets.symmetric(horizontal: 12,vertical: 6),
         child: SingleChildScrollView(
           physics: const BouncingScrollPhysics(),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              const Divider(),
               StreamBuilder<QuerySnapshot>(
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
@@ -54,16 +76,16 @@ class _UserNotificationScreenState extends State<UserNotificationScreen> {
                       );
                     } else if (!snapshot.hasData ||
                         snapshot.data!.docs.isEmpty) {
-                      return Padding(
-                        padding: const EdgeInsets.only(top: 233),
+                      return const Padding(
+                        padding: EdgeInsets.only(top: 233),
                         child: Center(
-                          child: Text(
+                          child:  Text(
                             'You have not any notification yet',
                             textAlign: TextAlign.center,
                             style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w400,
-                                color: Colors.amber.shade700),
+                                color: Colors.redAccent),
                           ),
                         ),
                       );
@@ -118,7 +140,7 @@ class _UserNotificationScreenState extends State<UserNotificationScreen> {
                                   elevation: 13,
                                   child: Container(
                                     padding: const EdgeInsets.symmetric(
-                                        horizontal: 6),
+                                        horizontal: 8),
                                     decoration: BoxDecoration(
                                       color: Colors.white,
                                       borderRadius: BorderRadius.circular(14),

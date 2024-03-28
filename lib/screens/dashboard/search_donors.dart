@@ -6,14 +6,14 @@ import 'package:velocity_x/velocity_x.dart';
 
 import '../chat/chat_screen.dart';
 
-class AllDonorsScreen extends StatefulWidget {
-  const AllDonorsScreen({super.key});
+class SearchDonorsScreen extends StatefulWidget {
+  const SearchDonorsScreen({super.key});
 
   @override
-  State<AllDonorsScreen> createState() => _AllDonorsScreenState();
+  State<SearchDonorsScreen> createState() => _SearchDonorsScreenState();
 }
 
-class _AllDonorsScreenState extends State<AllDonorsScreen> {
+class _SearchDonorsScreenState extends State<SearchDonorsScreen> {
   TextEditingController searchController = TextEditingController();
   String searchText = "";
 //
@@ -44,26 +44,7 @@ class _AllDonorsScreenState extends State<AllDonorsScreen> {
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        title: Row(
-          children: [
-            IconButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              icon: Container(
-                height: 30,
-                width: 30,
-                decoration: const BoxDecoration(
-                  color: Colors.red,
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.arrow_back_ios_new,
-                  color: Colors.white,
-                ),
-              ),
-            ),
-            SizedBox(width: Get.width * .2),
+        title: 
             const Text(
               'All Donors',
               textAlign: TextAlign.center,
@@ -73,8 +54,7 @@ class _AllDonorsScreenState extends State<AllDonorsScreen> {
                 fontWeight: FontWeight.w600,
               ),
             ),
-          ],
-        ),
+         centerTitle: true,
         // elevation: 1,
       ),
       body: Padding(

@@ -21,8 +21,6 @@ class ProfileController extends GetxController {
     return FirebaseFirestore.instance.collection('users').snapshots();
   }
 
-
-
   final picker = ImagePicker();
   XFile? _image;
   XFile? get image => _image;
@@ -36,8 +34,7 @@ class ProfileController extends GetxController {
       uploadProfilePicture();
       isLoading.value = false;
     }
-      isLoading.value = false;
-
+    isLoading.value = false;
   }
 
   Future pickCameraimage() async {
@@ -50,8 +47,7 @@ class ProfileController extends GetxController {
       uploadProfilePicture();
       isLoading.value = false;
     }
-      isLoading.value = false;
-
+    isLoading.value = false;
   }
 
   void pickImage(context) {
@@ -92,9 +88,8 @@ class ProfileController extends GetxController {
       },
     );
   }
- Future<String> uploadProfilePicture(
-    
-      ) async {
+
+  Future<String> uploadProfilePicture() async {
     isLoading.value = true;
     try {
       FirebaseStorage storage = FirebaseStorage.instance;
@@ -103,7 +98,7 @@ class ProfileController extends GetxController {
       String imageUrl = await ref.getDownloadURL();
       // print("Image URL : " + imageUrl);
       await FirebaseAuth.instance.currentUser!.updatePhotoURL(imageUrl);
-     FirebaseFirestore.instance
+      FirebaseFirestore.instance
           .collection('users')
           .doc(FirebaseAuth.instance.currentUser!.uid)
           .update({'image': imageUrl.toString()}).then((value) {
@@ -111,17 +106,17 @@ class ProfileController extends GetxController {
         isLoading.value = false;
         _image = null;
       });
-            isLoading.value = false;
+      isLoading.value = false;
 
       return imageUrl;
     } on FirebaseException catch (e) {
-         isLoading.value = false;
+      isLoading.value = false;
       Get.snackbar('Error', e.toString());
     }
 
     return '';
   }
- 
+
 //
 //
 
@@ -129,8 +124,9 @@ class ProfileController extends GetxController {
     await FirebaseAuth.instance.signOut();
     Get.to(() => const SigninScreen());
   }
-  // 
-  // 
+
+  //
+  //
   Future<String> uploadProfile(
     String email,
     String fileName,
@@ -153,14 +149,14 @@ class ProfileController extends GetxController {
 
     return '';
   }
-// 
-// 
- Future deletePost(String id) async {
+
+//
+//
+  Future deletePost(String id) async {
     await FirebaseFirestore.instance
-        .collection('users')
-        .doc(FirebaseAuth.instance.currentUser!.uid)
-        .collection("posts") 
+        .collection("posts")
         .doc(id)
         .delete()
-        .then((value) {});}
+        .then((value) {});
+  }
 }

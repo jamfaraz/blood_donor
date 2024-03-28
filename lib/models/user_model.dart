@@ -8,8 +8,8 @@ class UserModel {
   final String password;
   final String city;
   final String contact;
-  final String latitude;
-  final String longitude;
+  final double latitude;
+  final double longitude;
   const UserModel({
     required this.email,
     required this.userId,

@@ -1,5 +1,6 @@
-
 import 'package:blood_donor/screens/dashboard/all_donors.dart';
+import 'package:blood_donor/screens/dashboard/nearby_donors.dart';
+import 'package:blood_donor/screens/dashboard/notification_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -18,48 +19,39 @@ class _HomeScreenState extends State<HomeScreen> {
   String searchText = "";
   TextEditingController searchController = TextEditingController();
 
-  double _latitude = 0.0;
-  double _longitude = 0.0;
+  List<DocumentSnapshot> _lawyers = [];
+
+  Future<void> _fetchNearestDonors() async {
+    Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high);
+    double userLatitude = position.latitude;
+    double userLongitude = position.longitude;
+
+    var snapshots = await FirebaseFirestore.instance
+        .collection('donors')
+        .limit(4)
+        .orderBy('username')
+        .startAt([searchText.toUpperCase()]).endAt(['$searchText\uf8ff']).get();
+    setState(() {
+      _lawyers = snapshots.docs.where((doc) {
+        double lawyerLatitude = doc['latitude'];
+        double lawyerLongitude = doc['longitude'];
+        double distance = Geolocator.distanceBetween(
+          userLatitude,
+          userLongitude,
+          lawyerLatitude,
+          lawyerLongitude,
+        );
+        return distance <= 10000; // 25 km in meters
+      }).toList();
+    });
+  }
 
   @override
   void initState() {
+    _fetchNearestDonors();
     super.initState();
-    _getCurrentLocation();
   }
-
-  Future<void> _getCurrentLocation() async {
-    try {
-      Position position = await Geolocator.getCurrentPosition(
-          desiredAccuracy: LocationAccuracy.high);
-      setState(() {
-        _latitude = position.latitude;
-        _longitude = position.longitude;
-      });
-    } catch (e) {
-      print("Error getting location: $e");
-    }
-  }
-
-  // Future<List<DocumentSnapshot>> _getNearestUsers() async {
-  //   try {
-  //     var usersQuery = FirebaseFirestore.instance.collection('donors');
-  //     var snapshot = await usersQuery.get();
-  //     var users = snapshot.docs;
-
-  //     users.sort((a, b) {
-  //       double distanceToA = Geolocator.distanceBetween(
-  //           _latitude, _longitude, a['latitude'], a['longitude']);
-  //       double distanceToB = Geolocator.distanceBetween(
-  //           _latitude, _longitude, b['latitude'], b['longitude']);
-  //       return distanceToA.compareTo(distanceToB);
-  //     });
-
-  //     return users;
-  //   } catch (e) {
-  //     print('Error getting nearest users: $e');
-  //     return [];
-  //   }
-  // }
 
   @override
   Widget build(BuildContext context) {
@@ -140,14 +132,15 @@ class _HomeScreenState extends State<HomeScreen> {
                                     []);
                           }
                         }),
-
-                    // IconButton(
-                    //   onPressed: () {},
-                    //   icon: const Icon(
-                    //     Icons.notification_add,
-                    //     color: Colors.black,
-                    //   ),
-                    // ),
+                    IconButton(
+                      onPressed: () {
+                        Get.to(() => const UserNotificationScreen());
+                      },
+                      icon: const Icon(
+                        Icons.notification_add,
+                        color: Colors.red,
+                      ),
+                    ),
                   ],
                 ),
                 10.heightBox,
@@ -204,7 +197,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ],
                   ),
                 ),
-                10.heightBox,
+                18.heightBox,
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -218,7 +211,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     GestureDetector(
                       onTap: () {
-                        Get.to(() => const AllDonorsScreen());
+                        Get.to(() => const NearbyDonorsScreen());
                       },
                       child: const Text(
                         "View all",
@@ -232,20 +225,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   ],
                 ),
                 5.heightBox,
-                // ListView.builder(
-                //   itemCount: nearestUsers.length,
-                //   shrinkWrap: true,
-                //   itemBuilder: (context, index) {
-                //     var user = nearestUsers[index];
-                //     return ListTile(
-                //       title: Text(user['username']),
-                //       subtitle: Text(
-                //         'Latitude: ${user['latitude']}, Longitude: ${user['longitude']}',
-                //       ),
-                //       // You can display more information about the user if needed
-                //     );
-                //   },
-                // ),
                 SizedBox(
                   height: 128,
                   child: StreamBuilder(
@@ -280,32 +259,14 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                           ));
                         } else {
-                          List<DocumentSnapshot> users = snapshot.data!.docs;
-                          users.sort((a, b) {
-                            double distanceA = calculateDistance(
-                                a['latitude'], a['longitude']);
-                            double distanceB = calculateDistance(
-                                b['latitude'], b['longitude']);
-                            return distanceA.compareTo(distanceB);
-                          });
-
-                          
                           return ListView.builder(
                             scrollDirection: Axis.horizontal,
                             shrinkWrap: true,
-                            // itemCount:snapshot.data!.docs.length
-                            // <
-                            //                         3
-                            //                     ? snapshot.data!.docs.length
-                            //                     : 3,
-                            // itemCount: snapshot.data?.docs.length ?? 0,
-                            itemCount: users.length,
-
+                            itemCount: _lawyers.length,
                             itemBuilder: (context, index) {
-                              final e = snapshot.data!.docs[index];
+                              final e = _lawyers[index];
                               return Column(
                                 children: [
-                                  Text('Distance: ${calculateDistance(users[index]['latitude'], users[index]['longitude'])} km'),
                                   Card(
                                     color: Colors.white,
                                     child: Container(
@@ -350,11 +311,13 @@ class _HomeScreenState extends State<HomeScreen> {
                                                   children: [
                                                     Text(
                                                       e['username'],
-                                                      textAlign: TextAlign.center,
+                                                      textAlign:
+                                                          TextAlign.center,
                                                       style: const TextStyle(
                                                         color: Colors.black,
                                                         fontSize: 12,
-                                                        fontWeight: FontWeight.bold,
+                                                        fontWeight:
+                                                            FontWeight.bold,
                                                       ),
                                                     ),
                                                     // 5.widthBox,
@@ -390,7 +353,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                                       style: TextStyle(
                                                         color: Colors.black,
                                                         fontSize: 12,
-                                                        fontWeight: FontWeight.w600,
+                                                        fontWeight:
+                                                            FontWeight.w600,
                                                       ),
                                                     ),
                                                     const SizedBox(
@@ -432,10 +396,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     TextButton(
                       onPressed: () {
-                        // Navigator.push(
-                        //     context,
-                        //     MaterialPageRoute(
-                        //         builder: (_) => const CategoryScreen()));
+                        Get.to(() => const AllDonorsScreen());
                       },
                       child: const Text(
                         "View all",
@@ -684,33 +645,21 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                               ],
                             ),
-                            // Adjust the spacing as needed
-                            // Expanded(
-                            //   flex: 1,
-                            //   child: ClipRRect(
-                            //     borderRadius: BorderRadius.circular(16),
-                            //     child: Image.asset(
-                            //       'assets/person.png',
-                            //       height: 250,
-                            //       fit: BoxFit.cover,
-                            //     ),
-                            //   ),
-                            // ),
                           ],
                         ),
                       ),
                     ),
                     10.widthBox,
                     Positioned(
-                      right: -92, // Adjust the position as needed
+                      right: -92,
                       top: 2,
-                      left: 190, // Adjust the position as needed
+                      left: 190,
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(16),
                         child: Image.asset(
                           'assets/person.png',
-                          width: 244, // Adjust the width as needed
-                          height: 207, // Adjust the height as needed
+                          width: 244,
+                          height: 207,
                           fit: BoxFit.cover,
                         ),
                       ),
@@ -724,148 +673,4 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
-
-  double calculateDistance(double latitude, double longitude) {
-    // Calculation of distance from current location to another location
-    // You can use Haversine formula or any other method for accurate distance calculation
-    // For simplicity, Euclidean distance is used here
-    double latDiff = latitude - _latitude;
-    double lonDiff = longitude - _longitude;
-    return (latDiff * latDiff + lonDiff * lonDiff).sqrt * 111.32;
-  }
 }
-
-
-
-// import 'package:flutter/material.dart';
-// import 'package:cloud_firestore/cloud_firestore.dart';
-// import 'package:geolocator/geolocator.dart';
-
-// class User {
-//   final String uid;
-//   final double latitude;
-//   final double longitude;
-
-//   User({required this.uid, required this.latitude, required this.longitude});
-// }
-
-// class SignupScreen extends StatefulWidget {
-//   @override
-//   _SignupScreenState createState() => _SignupScreenState();
-// }
-
-// class _SignupScreenState extends State<SignupScreen> {
-//   late Position _currentPosition;
-//   final TextEditingController _uidController = TextEditingController();
-
-//   @override
-//   void initState() {
-//     super.initState();
-//     _getCurrentLocation();
-//   }
-
-//   void _getCurrentLocation() async {
-//     final position = await Geolocator.getCurrentPosition(
-//         desiredAccuracy: LocationAccuracy.high);
-//     setState(() {
-//       _currentPosition = position;
-//     });
-//   }
-
-//   Future<void> _signupUser() async {
-//     try {
-//       if (_currentPosition != null) {
-//         await FirebaseFirestore.instance.collection('users').add({
-//           'uid': _uidController.text,
-//           'latitude': _currentPosition.latitude,
-//           'longitude': _currentPosition.longitude,
-//         });
-//         _uidController.clear();
-//       } else {
-//         // Handle error
-//         print('Error: Unable to get current location');
-//       }
-//     } catch (e) {
-//       // Handle error
-//       print('Error: $e');
-//     }
-//   }
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       appBar: AppBar(
-//         title: Text('Signup'),
-//       ),
-//       body: Padding(
-//         padding: EdgeInsets.all(20.0),
-//         child: Column(
-//           mainAxisAlignment: MainAxisAlignment.center,
-//           children: <Widget>[
-//             TextField(
-//               controller: _uidController,
-//               decoration: InputDecoration(labelText: 'User ID'),
-//             ),
-//             SizedBox(height: 20.0),
-//             ElevatedButton(
-//               onPressed: _signupUser,
-//               child: Text('Signup'),
-//             ),
-//           ],
-//         ),
-//       ),
-//     );
-//   }
-// }
-
-// class NearestUsersScreen extends StatelessWidget {
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       appBar: AppBar(
-//         title: Text('Nearest Users'),
-//       ),
-//       body: StreamBuilder(
-//         stream: FirebaseFirestore.instance.collection('users').snapshots(),
-//         builder: (BuildContext context, AsyncSnapshot snapshot) {
-//           if (!snapshot.hasData) return CircularProgressIndicator();
-//           final users = snapshot.data.docs.map((doc) {
-//             return User(
-//               uid: doc['uid'],
-//               latitude: doc['latitude'],
-//               longitude: doc['longitude'],
-//             );
-//           }).toList();
-
-//           // Filter users within 20 km range
-//           final nearestUsers = users.where((user) {
-//             final double distance = Geolocator.distanceBetween(
-//                 _currentPosition.latitude,
-//                 _currentPosition.longitude,
-//                 user.latitude,
-//                 user.longitude);
-//             return distance <= 20000; // 20 km in meters
-//           }).toList();
-
-//           return ListView.builder(
-//             itemCount: nearestUsers.length,
-//             itemBuilder: (context, index) {
-//               final user = nearestUsers[index];
-//               return ListTile(
-//                 title: Text(user.uid),
-//                 subtitle:
-//                     Text('Latitude: ${user.latitude}, Longitude: ${user.longitude}'),
-//               );
-//             },
-//           );
-//         },
-//       ),
-//     );
-//   }
-// }
-
-// void main() {
-//   runApp(MaterialApp(
-//     home: SignupScreen(),
-//   ));
-// }

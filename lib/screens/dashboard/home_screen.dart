@@ -1,13 +1,11 @@
-// ignore_for_file: sized_box_for_whitespace
 
-import 'package:card_swiper/card_swiper.dart';
+import 'package:blood_donor/screens/dashboard/all_donors.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
-import 'package:shimmer/shimmer.dart';
 import 'package:velocity_x/velocity_x.dart';
-
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -16,465 +14,858 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
-  late TabController tabController;
+class _HomeScreenState extends State<HomeScreen> {
+  String searchText = "";
+  TextEditingController searchController = TextEditingController();
+
+  double _latitude = 0.0;
+  double _longitude = 0.0;
 
   @override
   void initState() {
-    tabController = TabController(length: 2, vsync: this);
     super.initState();
-    tabController.addListener(() {
-      setState(() {});
-    });
+    _getCurrentLocation();
   }
 
-  String searchText = "";
-  TextEditingController searchController = TextEditingController();
+  Future<void> _getCurrentLocation() async {
+    try {
+      Position position = await Geolocator.getCurrentPosition(
+          desiredAccuracy: LocationAccuracy.high);
+      setState(() {
+        _latitude = position.latitude;
+        _longitude = position.longitude;
+      });
+    } catch (e) {
+      print("Error getting location: $e");
+    }
+  }
+
+  // Future<List<DocumentSnapshot>> _getNearestUsers() async {
+  //   try {
+  //     var usersQuery = FirebaseFirestore.instance.collection('donors');
+  //     var snapshot = await usersQuery.get();
+  //     var users = snapshot.docs;
+
+  //     users.sort((a, b) {
+  //       double distanceToA = Geolocator.distanceBetween(
+  //           _latitude, _longitude, a['latitude'], a['longitude']);
+  //       double distanceToB = Geolocator.distanceBetween(
+  //           _latitude, _longitude, b['latitude'], b['longitude']);
+  //       return distanceToA.compareTo(distanceToB);
+  //     });
+
+  //     return users;
+  //   } catch (e) {
+  //     print('Error getting nearest users: $e');
+  //     return [];
+  //   }
+  // }
 
   @override
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
-        body: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(
-                height: 8,
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  StreamBuilder(
+        body: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          child: Padding(
+            padding: const EdgeInsets.all(10),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    StreamBuilder(
+                        stream: FirebaseFirestore.instance
+                            .collection('users')
+                            .snapshots(),
+                        builder:
+                            (context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                          if (snapshot.hasError) {
+                            return Text('Error: ${snapshot.error}');
+                          } else {
+                            return Column(
+                                children: snapshot.data?.docs.map((e) {
+                                      return Column(
+                                        children: [
+                                          e["userId"] ==
+                                                  FirebaseAuth
+                                                      .instance.currentUser?.uid
+                                              ? Row(
+                                                  children: [
+                                                    CircleAvatar(
+                                                      radius: 30,
+                                                      backgroundImage:
+                                                          NetworkImage(
+                                                              e['image']),
+                                                    ),
+                                                    const SizedBox(
+                                                      width: 12,
+                                                    ),
+                                                    Column(
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .start,
+                                                      children: [
+                                                        const Text(
+                                                          'Hello,',
+                                                          style: TextStyle(
+                                                            color: Color(
+                                                                0xFF0C253F),
+                                                            fontSize: 12,
+                                                            fontWeight:
+                                                                FontWeight.w600,
+                                                          ),
+                                                        ),
+                                                        Text(
+                                                          e['username'],
+                                                          style:
+                                                              const TextStyle(
+                                                            color: Color(
+                                                                0xFF5A5A5A),
+                                                            fontSize: 12,
+                                                            fontWeight:
+                                                                FontWeight.w400,
+                                                            height: 0,
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ],
+                                                )
+                                              : const SizedBox()
+                                        ],
+                                      );
+                                    }).toList() ??
+                                    []);
+                          }
+                        }),
+
+                    // IconButton(
+                    //   onPressed: () {},
+                    //   icon: const Icon(
+                    //     Icons.notification_add,
+                    //     color: Colors.black,
+                    //   ),
+                    // ),
+                  ],
+                ),
+                10.heightBox,
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                  ),
+                  width: 327 * 44,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(30),
+                    border: Border.all(
+                      color: Colors.grey,
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: TextFormField(
+                          controller: searchController,
+                          cursorColor: Colors.red,
+                          decoration: InputDecoration(
+                            prefixIcon: (searchText.isEmpty)
+                                ? const Icon(
+                                    Icons.search,
+                                    color: Colors.red,
+                                  )
+                                : IconButton(
+                                    icon: const Icon(Icons.clear),
+                                    onPressed: () {
+                                      searchText = '';
+                                      searchController.clear();
+                                      setState(() {});
+                                    },
+                                  ),
+                            hintText: 'Search by name',
+                            border: InputBorder.none,
+                            hintStyle: const TextStyle(
+                              fontSize: 14,
+                              // color: const Color(0xFF353535),
+                            ),
+                          ),
+                          onChanged: (value) {
+                            setState(() {
+                              searchText = value;
+                            });
+                          },
+                        ),
+                      ),
+                      // Image.asset(
+                      //   'assets/filter.png',
+                      //   height: 20,
+                      //   width: 20,
+                      // ),
+                    ],
+                  ),
+                ),
+                10.heightBox,
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      "Nearby Donors",
+                      style: TextStyle(
+                        color: Color(0xFF474747),
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: () {
+                        Get.to(() => const AllDonorsScreen());
+                      },
+                      child: const Text(
+                        "View all",
+                        style: TextStyle(
+                          color: Colors.red,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w400,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                5.heightBox,
+                // ListView.builder(
+                //   itemCount: nearestUsers.length,
+                //   shrinkWrap: true,
+                //   itemBuilder: (context, index) {
+                //     var user = nearestUsers[index];
+                //     return ListTile(
+                //       title: Text(user['username']),
+                //       subtitle: Text(
+                //         'Latitude: ${user['latitude']}, Longitude: ${user['longitude']}',
+                //       ),
+                //       // You can display more information about the user if needed
+                //     );
+                //   },
+                // ),
+                SizedBox(
+                  height: 128,
+                  child: StreamBuilder(
                       stream: FirebaseFirestore.instance
-                          .collection('users')
-                          .snapshots(),
+                          .collection('donors')
+                          .limit(4)
+                          .orderBy('username')
+                          .startAt([searchText.toUpperCase()]).endAt(
+                              ['$searchText\uf8ff']).snapshots(),
                       builder:
                           (context, AsyncSnapshot<QuerySnapshot> snapshot) {
-                        return Column(
-                            children: snapshot.data?.docs.map((e) {
-                                  return Column(
-                                    children: [
-                                      e["userId"] ==
-                                              FirebaseAuth
-                                                  .instance.currentUser?.uid
-                                          ? Row(
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return const Center(
+                              child: Padding(
+                            padding: EdgeInsets.only(top: 4),
+                            child: CircularProgressIndicator(),
+                          ));
+                        } else if (snapshot.hasError) {
+                          return Text('Error: ${snapshot.error}');
+                        } else if (!snapshot.hasData ||
+                            snapshot.data!.docs.isEmpty) {
+                          return const Center(
+                              child: Padding(
+                            padding: EdgeInsets.only(top: 4),
+                            child: Text(
+                              'No donors Registered yet',
+                              style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w400,
+                                  color: Colors.red),
+                            ),
+                          ));
+                        } else {
+                          List<DocumentSnapshot> users = snapshot.data!.docs;
+                          users.sort((a, b) {
+                            double distanceA = calculateDistance(
+                                a['latitude'], a['longitude']);
+                            double distanceB = calculateDistance(
+                                b['latitude'], b['longitude']);
+                            return distanceA.compareTo(distanceB);
+                          });
+
+                          
+                          return ListView.builder(
+                            scrollDirection: Axis.horizontal,
+                            shrinkWrap: true,
+                            // itemCount:snapshot.data!.docs.length
+                            // <
+                            //                         3
+                            //                     ? snapshot.data!.docs.length
+                            //                     : 3,
+                            // itemCount: snapshot.data?.docs.length ?? 0,
+                            itemCount: users.length,
+
+                            itemBuilder: (context, index) {
+                              final e = snapshot.data!.docs[index];
+                              return Column(
+                                children: [
+                                  Text('Distance: ${calculateDistance(users[index]['latitude'], users[index]['longitude'])} km'),
+                                  Card(
+                                    color: Colors.white,
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        color: Colors.grey[100],
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                      padding: const EdgeInsets.only(
+                                        left: 10,
+                                        right: 10,
+                                        top: 10,
+                                        bottom: 8,
+                                      ),
+                                      height: 120,
+                                      width: 220,
+                                      child: Row(
+                                        children: [
+                                          Container(
+                                            height: 90,
+                                            width: 80,
+                                            child: ClipRRect(
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
+                                              child: Image.network(
+                                                e['image'],
+                                                fit: BoxFit.cover,
+                                                height: 75,
+                                              ),
+                                            ),
+                                          ),
+                                          Padding(
+                                            padding: const EdgeInsets.only(
+                                                left: 6, top: 9),
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
                                               children: [
-                                                CircleAvatar(
-                                                  radius: 30,
-                                                  backgroundImage:
-                                                      NetworkImage(e['image']),
-                                                ),
-                                                const SizedBox(
-                                                  width: 12,
-                                                ),
-                                                Column(
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment.start,
+                                                Row(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment
+                                                          .spaceBetween,
                                                   children: [
-                                                    const Text(
-                                                      'Hello,',
-                                                      style: TextStyle(
-                                                        color:
-                                                            Color(0xFF0C253F),
-                                                        fontSize: 12,
-                                                        fontWeight:
-                                                            FontWeight.w600,
-                                                      ),
-                                                    ),
                                                     Text(
                                                       e['username'],
+                                                      textAlign: TextAlign.center,
                                                       style: const TextStyle(
-                                                        color:
-                                                            Color(0xFF5A5A5A),
+                                                        color: Colors.black,
                                                         fontSize: 12,
-                                                        fontWeight:
-                                                            FontWeight.w400,
+                                                        fontWeight: FontWeight.bold,
+                                                      ),
+                                                    ),
+                                                    // 5.widthBox,
+                                                    // Text(
+                                                    //   '4.7',
+                                                    //   style: GoogleFonts.poppins(
+                                                    //     color: Colors.black,
+                                                    //     fontSize: 12,
+                                                    //     fontWeight: FontWeight.bold,
+                                                    //   ),
+                                                    // ),
+                                                    // const Icon(
+                                                    //   Icons.star,
+                                                    //   color: Colors.amber,
+                                                    // ),
+                                                  ],
+                                                ),
+                                                2.heightBox,
+                                                Text(
+                                                  e['category'],
+                                                  style: const TextStyle(
+                                                    color: Colors.black87,
+                                                    fontSize: 10,
+                                                  ),
+                                                ),
+                                                const SizedBox(
+                                                  height: 22,
+                                                ),
+                                                Row(
+                                                  children: [
+                                                    const Text(
+                                                      'City',
+                                                      style: TextStyle(
+                                                        color: Colors.black,
+                                                        fontSize: 12,
+                                                        fontWeight: FontWeight.w600,
+                                                      ),
+                                                    ),
+                                                    const SizedBox(
+                                                      width: 33,
+                                                    ),
+                                                    Text(
+                                                      e['city'],
+                                                      style: const TextStyle(
+                                                        color: Colors.black87,
+                                                        fontSize: 11,
                                                       ),
                                                     ),
                                                   ],
                                                 ),
                                               ],
-                                            )
-                                          : const SizedBox()
-                                    ],
-                                  );
-                                }).toList() ??
-                                []);
-                      }),
-                ],
-              ),
-              const Divider(),
-              8.heightBox,
-              // TextFormField(
-              //   controller: searchController,
-              //   cursorColor: Colors.green,
-              //   decoration: InputDecoration(
-              //     contentPadding: EdgeInsets.symmetric(
-              //       vertical: MediaQuery.of(context).size.width * 0.030,
-              //     ),
-              //     enabledBorder: OutlineInputBorder(
-              //       borderRadius: BorderRadius.circular(8),
-              //       borderSide: const BorderSide(
-              //         color: Colors.black45,
-              //       ),
-              //     ),
-              //     focusedBorder: OutlineInputBorder(
-              //       borderRadius: BorderRadius.circular(8),
-              //       borderSide: const BorderSide(
-              //         color: Colors.black,
-              //       ),
-              //     ),
-              //     prefixIcon: (searchText.isEmpty)
-              //         ? const Icon(Icons.search)
-              //         : IconButton(
-              //             icon: const Icon(Icons.clear),
-              //             onPressed: () {
-              //               searchText = '';
-              //               searchController.clear();
-              //               setState(() {});
-              //             },
-              //           ),
-              //     hintText: 'Search by name',
-              //     hintStyle: const TextStyle(color: Colors.green),
-              //     border: InputBorder.none,
-              //   ),
-              //   onChanged: (value) {
-              //     setState(() {
-              //       searchText = value;
-              //     });
-              //   },
-              // ),
-              StreamBuilder(
-                stream: FirebaseFirestore.instance
-                    .collection('items')
-                    // .limit(4)
-                    .snapshots(),
-                builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
-                  if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                    return const Center(
-                      child: Text(
-                        ' data is not available',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w400,
-                            color: Colors.green),
-                      ),
-                    );
-                  } else {
-                    final documents = snapshot.data!.docs;
-
-                    return SizedBox(
-                      height: Get.height * .22,
-                      child: Swiper(
-                        itemCount: 4,
-                        itemBuilder: (context, index) {
-                          final data =
-                              documents[index].data() as Map<String, dynamic>;
-                          return Container(
-                            margin: const EdgeInsets.symmetric(horizontal: 8),
-                            decoration: BoxDecoration(
-                              color: Colors.grey.shade400,
-                              borderRadius: BorderRadius.circular(14),
-
-                              // image: DecorationImage(image: NetworkImage(data['image']),fit: BoxFit.contain),
-                            ),
-                            child: ClipRRect(
-                                borderRadius: BorderRadius.circular(14),
-                                child: Image.network(
-                                  data['image'],
-                                  fit: BoxFit.cover,
-                                  height: Get.height * .2,
-                                  width: Get.width * .86,
-                                )),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              );
+                            },
                           );
-                        },
-                        allowImplicitScrolling: true, autoplay: true,
-                        pagination: const SwiperPagination(),
-                        // control: const SwiperControl(),
-                      ),
-                    );
-                  }
-                },
-              ),
-              12.heightBox,
-              TabBar(
-                  controller: tabController,
-                  indicatorColor: Colors.transparent,
-                  dividerColor: Colors.transparent,
-                  tabs: [
-                    TabBarItem(
-                      title: 'Fruits',
-                      isSelected: tabController.index == 0,
-                      selectedColor: Colors.green,
-                    ),
-                    TabBarItem(
-                      title: 'Vegetables',
-                      isSelected: tabController.index == 1,
-                      selectedColor: Colors.green,
-                    ),
-                  ]),
-              Expanded(
-                child: TabBarView(
-                  controller: tabController,
-
+                        }
+                      }),
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    SingleChildScrollView(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const SizedBox(
-                            height: 12,
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 16),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                const Text(
-                                  'Popular Fruits',
-                                  style: TextStyle(
-                                    color: Color(0xFF3D3D3D),
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                                InkWell(
-                                  onTap: () {
-                                    // Get.to(() => const AllFruits());
-                                  },
-                                  child: const Text(
-                                    'View all',
-                                    style: TextStyle(
-                                      color: Colors.green,
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.w400,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(
-                            height: 12,
-                          ),
-                          _buildAppointmentsStream(category: 'Fruits')
-                        ],
+                    const Text(
+                      "All donors",
+                      style: TextStyle(
+                        color: Color(0xFF474747),
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
-                    SingleChildScrollView(
-                      child: Column(
-                        children: [
-                          const SizedBox(
-                            height: 12,
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 16),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                const Text(
-                                  'Popular Vegetables',
-                                  style: TextStyle(
-                                    color: Color(0xFF3D3D3D),
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                                InkWell(
-                                  onTap: () {
-                                    // Get.to(() => const AllVegetables());
-                                  },
-                                  child: const Text(
-                                    'View all',
-                                    style: TextStyle(
-                                      color: Colors.green,
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.w400,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(
-                            height: 12,
-                          ),
-                          _buildAppointmentsStream(category: 'Vegetables')
-                        ],
+                    TextButton(
+                      onPressed: () {
+                        // Navigator.push(
+                        //     context,
+                        //     MaterialPageRoute(
+                        //         builder: (_) => const CategoryScreen()));
+                      },
+                      child: const Text(
+                        "View all",
+                        style: TextStyle(
+                          color: Colors.red,
+                          fontSize: 13,
+                          fontFamily: 'Poppins',
+                          fontWeight: FontWeight.w400,
+                        ),
                       ),
                     ),
                   ],
                 ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
+                SizedBox(
+                  height: 128,
+                  child: StreamBuilder(
+                      stream: FirebaseFirestore.instance
+                          .collection('donors')
+                          .limit(4)
+                          .orderBy('username')
+                          .startAt([searchText.toUpperCase()]).endAt(
+                              ['$searchText\uf8ff']).snapshots(),
+                      builder:
+                          (context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return const Center(
+                              child: Padding(
+                            padding: EdgeInsets.only(top: 4),
+                            child: CircularProgressIndicator(),
+                          ));
+                        } else if (snapshot.hasError) {
+                          return Text('Error: ${snapshot.error}');
+                        } else if (!snapshot.hasData ||
+                            snapshot.data!.docs.isEmpty) {
+                          return const Center(
+                              child: Padding(
+                            padding: EdgeInsets.only(top: 4),
+                            child: Text(
+                              'No donors Registered yet',
+                              style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w400,
+                                  color: Colors.red),
+                            ),
+                          ));
+                        } else {
+                          return ListView.builder(
+                            scrollDirection: Axis.horizontal,
+                            shrinkWrap: true,
+                            // itemCount:snapshot.data!.docs.length
+                            // <
+                            //                         3
+                            //                     ? snapshot.data!.docs.length
+                            //                     : 3,
+                            itemCount: snapshot.data?.docs.length ?? 0,
 
-  Widget _buildAppointmentsStream({required String category}) {
-    return StreamBuilder(
-      stream: FirebaseFirestore.instance
-          .collection('items')
-          .limit(4)
-          .where(
-            'category',
-            isEqualTo: category,
-          )
-          .snapshots(),
-      //
-      //
-
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return GridView.builder(
-            shrinkWrap: true,
-            itemCount: snapshot.data?.docs.length ?? 0,
-            physics: const BouncingScrollPhysics(),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                mainAxisSpacing: 12, crossAxisCount: 2),
-            itemBuilder: (context, index) {
-              return Shimmer.fromColors(
-                  baseColor: Colors.grey.shade300,
-                  highlightColor: Colors.grey.shade100,
-                  enabled: true,
-                  child: Container(
-                    height: 100,
-                    width: 133,
-                    color: Colors.white,
-                  ));
-            },
-          );
-        } else if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-          return const Center(
-            child: Padding(
-              padding: EdgeInsets.only(top: 166),
-              child: Text(
-                'data is not available',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w400,
-                    color: Colors.green),
-              ),
-            ),
-          );
-        } else {
-//
-
-          return Column(
-            children: [
-              GridView.builder(
-                shrinkWrap: true,
-                itemCount: snapshot.data?.docs.length ?? 0,
-                physics: const BouncingScrollPhysics(),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    mainAxisSpacing: 12, crossAxisCount: 2),
-                itemBuilder: (BuildContext context, int index) {
-                  final e = snapshot.data!.docs[index];
-
-                  return GestureDetector(
-                    onTap: () {
-                      // Get.to(() => ProductDetailPage(
-                      //     image: e['image'],
-                      //     price: e['price'],
-                      //     quantity: e['quantity'],
-                      //     category: e['category'],
-                      //     address: e['address'],
-                      //     title: e['title']));
-                    },
-                    child: Column(
-                      children: [
-                        Container(
-                          decoration: BoxDecoration(
-                              color: const Color.fromARGB(255, 224, 224, 224),
-                              borderRadius: BorderRadius.circular(8)),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              Container(
-                                height: 104,
-                                width: Get.width * .43,
-                                decoration: BoxDecoration(
+                            itemBuilder: (context, index) {
+                              final e = snapshot.data!.docs[index];
+                              return Card(
+                                color: Colors.white,
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey[100],
                                     borderRadius: BorderRadius.circular(10),
-                                    image: DecorationImage(
-                                        image: NetworkImage(e['image']),
-                                        fit: BoxFit.cover)),
-                              ),
-                              Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 10),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      e["title"],
-                                      style: const TextStyle(
-                                          fontSize: 17,
-                                          fontWeight: FontWeight.w600),
-                                    ),
-                                    Text('${e["price"]}/ kg'),
-                                  ],
+                                  ),
+                                  padding: const EdgeInsets.only(
+                                    left: 10,
+                                    right: 10,
+                                    top: 10,
+                                    bottom: 8,
+                                  ),
+                                  height: 120,
+                                  width: 220,
+                                  child: Row(
+                                    children: [
+                                      Container(
+                                        height: 90,
+                                        width: 80,
+                                        child: ClipRRect(
+                                          borderRadius:
+                                              BorderRadius.circular(12),
+                                          child: Image.network(
+                                            e['image'],
+                                            fit: BoxFit.cover,
+                                            height: 75,
+                                          ),
+                                        ),
+                                      ),
+                                      Padding(
+                                        padding: const EdgeInsets.only(
+                                            left: 6, top: 9),
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment
+                                                      .spaceBetween,
+                                              children: [
+                                                Text(
+                                                  e['username'],
+                                                  textAlign: TextAlign.center,
+                                                  style: const TextStyle(
+                                                    color: Colors.black,
+                                                    fontSize: 12,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                                // 5.widthBox,
+                                                // Text(
+                                                //   '4.7',
+                                                //   style: GoogleFonts.poppins(
+                                                //     color: Colors.black,
+                                                //     fontSize: 12,
+                                                //     fontWeight: FontWeight.bold,
+                                                //   ),
+                                                // ),
+                                                // const Icon(
+                                                //   Icons.star,
+                                                //   color: Colors.amber,
+                                                // ),
+                                              ],
+                                            ),
+                                            2.heightBox,
+                                            Text(
+                                              e['category'],
+                                              style: const TextStyle(
+                                                color: Colors.black87,
+                                                fontSize: 10,
+                                              ),
+                                            ),
+                                            const SizedBox(
+                                              height: 22,
+                                            ),
+                                            Row(
+                                              children: [
+                                                const Text(
+                                                  'City',
+                                                  style: TextStyle(
+                                                    color: Colors.black,
+                                                    fontSize: 12,
+                                                    fontWeight: FontWeight.w600,
+                                                  ),
+                                                ),
+                                                const SizedBox(
+                                                  width: 33,
+                                                ),
+                                                Text(
+                                                  e['city'],
+                                                  style: const TextStyle(
+                                                    color: Colors.black87,
+                                                    fontSize: 11,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
-                              ),
-                            ],
-                          ),
+                              );
+                            },
+                          );
+                        }
+                      }),
+                ),
+                20.heightBox,
+                20.heightBox,
+                Stack(
+                  children: [
+                    Container(
+                      height: Get.height * .22,
+                      width: Get.width,
+                      decoration: BoxDecoration(
+                        color: Colors.grey,
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(10),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'Chat with experts ',
+                                  style: TextStyle(
+                                    color: Color(0xFFF6FAFC),
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                const Text(
+                                  'Access to Expertise',
+                                  style: TextStyle(
+                                    color: Color(0xFFF6FAFC),
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w400,
+                                  ),
+                                ),
+                                const Text(
+                                  'Convenient',
+                                  style: TextStyle(
+                                    color: Color(0xFFF6FAFC),
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w400,
+                                  ),
+                                ),
+                                const Text(
+                                  'Time-Saving',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                                const Text(
+                                  'Confidential',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                                10.heightBox,
+                                Container(
+                                  height: 26,
+                                  width: 93,
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(22),
+                                  ),
+                                  child: const Center(
+                                    child: Text(
+                                      'Chat Now',
+                                      style: TextStyle(
+                                        color: Colors.black,
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            // Adjust the spacing as needed
+                            // Expanded(
+                            //   flex: 1,
+                            //   child: ClipRRect(
+                            //     borderRadius: BorderRadius.circular(16),
+                            //     child: Image.asset(
+                            //       'assets/person.png',
+                            //       height: 250,
+                            //       fit: BoxFit.cover,
+                            //     ),
+                            //   ),
+                            // ),
+                          ],
                         ),
-                      ],
+                      ),
                     ),
-                  );
-                },
-              )
-            ],
-          );
-        }
-      },
-    );
-  }
-}
-
-class TabBarItem extends StatelessWidget {
-  final String title;
-  final bool isSelected;
-  final Color selectedColor;
-
-  const TabBarItem({
-    super.key,
-    required this.title,
-    required this.isSelected,
-    required this.selectedColor,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: Get.size.width,
-      height: 42,
-      decoration: ShapeDecoration(
-        color: isSelected ? selectedColor : Colors.white,
-        shape: RoundedRectangleBorder(
-          side: BorderSide(
-              width: 1,
-              color: isSelected ? Colors.white : const Color(0xFFB3B3B3)),
-          borderRadius: BorderRadius.circular(22),
-        ),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        child: Text(
-          title,
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            color: isSelected ? Colors.white : const Color(0xFFB3B3B3),
-            fontSize: 13,
-            fontWeight: FontWeight.w500,
+                    10.widthBox,
+                    Positioned(
+                      right: -92, // Adjust the position as needed
+                      top: 2,
+                      left: 190, // Adjust the position as needed
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(16),
+                        child: Image.asset(
+                          'assets/person.png',
+                          width: 244, // Adjust the width as needed
+                          height: 207, // Adjust the height as needed
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),
     );
   }
+
+  double calculateDistance(double latitude, double longitude) {
+    // Calculation of distance from current location to another location
+    // You can use Haversine formula or any other method for accurate distance calculation
+    // For simplicity, Euclidean distance is used here
+    double latDiff = latitude - _latitude;
+    double lonDiff = longitude - _longitude;
+    return (latDiff * latDiff + lonDiff * lonDiff).sqrt * 111.32;
+  }
 }
+
+
+
+// import 'package:flutter/material.dart';
+// import 'package:cloud_firestore/cloud_firestore.dart';
+// import 'package:geolocator/geolocator.dart';
+
+// class User {
+//   final String uid;
+//   final double latitude;
+//   final double longitude;
+
+//   User({required this.uid, required this.latitude, required this.longitude});
+// }
+
+// class SignupScreen extends StatefulWidget {
+//   @override
+//   _SignupScreenState createState() => _SignupScreenState();
+// }
+
+// class _SignupScreenState extends State<SignupScreen> {
+//   late Position _currentPosition;
+//   final TextEditingController _uidController = TextEditingController();
+
+//   @override
+//   void initState() {
+//     super.initState();
+//     _getCurrentLocation();
+//   }
+
+//   void _getCurrentLocation() async {
+//     final position = await Geolocator.getCurrentPosition(
+//         desiredAccuracy: LocationAccuracy.high);
+//     setState(() {
+//       _currentPosition = position;
+//     });
+//   }
+
+//   Future<void> _signupUser() async {
+//     try {
+//       if (_currentPosition != null) {
+//         await FirebaseFirestore.instance.collection('users').add({
+//           'uid': _uidController.text,
+//           'latitude': _currentPosition.latitude,
+//           'longitude': _currentPosition.longitude,
+//         });
+//         _uidController.clear();
+//       } else {
+//         // Handle error
+//         print('Error: Unable to get current location');
+//       }
+//     } catch (e) {
+//       // Handle error
+//       print('Error: $e');
+//     }
+//   }
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return Scaffold(
+//       appBar: AppBar(
+//         title: Text('Signup'),
+//       ),
+//       body: Padding(
+//         padding: EdgeInsets.all(20.0),
+//         child: Column(
+//           mainAxisAlignment: MainAxisAlignment.center,
+//           children: <Widget>[
+//             TextField(
+//               controller: _uidController,
+//               decoration: InputDecoration(labelText: 'User ID'),
+//             ),
+//             SizedBox(height: 20.0),
+//             ElevatedButton(
+//               onPressed: _signupUser,
+//               child: Text('Signup'),
+//             ),
+//           ],
+//         ),
+//       ),
+//     );
+//   }
+// }
+
+// class NearestUsersScreen extends StatelessWidget {
+//   @override
+//   Widget build(BuildContext context) {
+//     return Scaffold(
+//       appBar: AppBar(
+//         title: Text('Nearest Users'),
+//       ),
+//       body: StreamBuilder(
+//         stream: FirebaseFirestore.instance.collection('users').snapshots(),
+//         builder: (BuildContext context, AsyncSnapshot snapshot) {
+//           if (!snapshot.hasData) return CircularProgressIndicator();
+//           final users = snapshot.data.docs.map((doc) {
+//             return User(
+//               uid: doc['uid'],
+//               latitude: doc['latitude'],
+//               longitude: doc['longitude'],
+//             );
+//           }).toList();
+
+//           // Filter users within 20 km range
+//           final nearestUsers = users.where((user) {
+//             final double distance = Geolocator.distanceBetween(
+//                 _currentPosition.latitude,
+//                 _currentPosition.longitude,
+//                 user.latitude,
+//                 user.longitude);
+//             return distance <= 20000; // 20 km in meters
+//           }).toList();
+
+//           return ListView.builder(
+//             itemCount: nearestUsers.length,
+//             itemBuilder: (context, index) {
+//               final user = nearestUsers[index];
+//               return ListTile(
+//                 title: Text(user.uid),
+//                 subtitle:
+//                     Text('Latitude: ${user.latitude}, Longitude: ${user.longitude}'),
+//               );
+//             },
+//           );
+//         },
+//       ),
+//     );
+//   }
+// }
+
+// void main() {
+//   runApp(MaterialApp(
+//     home: SignupScreen(),
+//   ));
+// }

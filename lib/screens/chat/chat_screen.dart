@@ -20,7 +20,8 @@ class ChatScreen extends StatefulWidget {
       this.name,
       this.groupId,
       this.fcmToken,
-      this.uid});
+      this.uid
+      });
 
   @override
   State<ChatScreen> createState() => _ChatScreenState();

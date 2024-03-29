@@ -100,7 +100,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                                               .start,
                                                       children: [
                                                         const Text(
-                                                          'Hello,',
+                                                          'Hello recipient,',
                                                           style: TextStyle(
                                                             color: Color(
                                                                 0xFF0C253F),
@@ -274,19 +274,15 @@ class _HomeScreenState extends State<HomeScreen> {
                                         color: Colors.grey[100],
                                         borderRadius: BorderRadius.circular(10),
                                       ),
-                                      padding: const EdgeInsets.only(
-                                        left: 10,
-                                        right: 10,
-                                        top: 10,
-                                        bottom: 8,
+                                      padding: const EdgeInsets.symmetric(
+                                      horizontal: 10,vertical: 10
                                       ),
                                       height: 120,
-                                      width: 220,
                                       child: Row(
                                         children: [
                                           Container(
-                                            height: 90,
-                                            width: 80,
+                                            height: Get.height*.12,
+                                            width: Get.width*.22,
                                             child: ClipRRect(
                                               borderRadius:
                                                   BorderRadius.circular(12),
@@ -463,29 +459,25 @@ class _HomeScreenState extends State<HomeScreen> {
                                     color: Colors.grey[100],
                                     borderRadius: BorderRadius.circular(10),
                                   ),
-                                  padding: const EdgeInsets.only(
-                                    left: 10,
-                                    right: 10,
-                                    top: 10,
-                                    bottom: 8,
-                                  ),
-                                  height: 120,
-                                  width: 220,
-                                  child: Row(
-                                    children: [
-                                      Container(
-                                        height: 90,
-                                        width: 80,
-                                        child: ClipRRect(
-                                          borderRadius:
-                                              BorderRadius.circular(12),
-                                          child: Image.network(
-                                            e['image'],
-                                            fit: BoxFit.cover,
-                                            height: 75,
-                                          ),
-                                        ),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 10,vertical: 10
                                       ),
+                                      height: 120,
+                                      child: Row(
+                                        children: [
+                                          Container(
+                                            height: Get.height*.12,
+                                            width: Get.width*.22,
+                                            child: ClipRRect(
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
+                                              child: Image.network(
+                                                e['image'],
+                                                fit: BoxFit.cover,
+                                                height: 75,
+                                              ),
+                                            ),
+                                          ),
                                       Padding(
                                         padding: const EdgeInsets.only(
                                             left: 6, top: 9),

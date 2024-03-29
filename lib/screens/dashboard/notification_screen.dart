@@ -102,10 +102,19 @@ class _UserNotificationScreenState extends State<UserNotificationScreen> {
                           }
                           return Column(
                             children: [
-                              GestureDetector(
-                                onTap: () {
-                                  // Get.to(()=>const ChatScreen());
-                                },
+                              InkWell(
+                                // onDoubleTap: () {
+                                //    Get.to(()=> ChatScreen(
+                                //       fcmToken: data['fcmToken'],
+                                //                   name: data['name'],
+                                //                   image: data['image'],
+                                //                   uid: data['userId'],
+                                //                   groupId: FirebaseAuth.instance
+                                //                       .currentUser!.uid,
+
+                                    
+                                //   ));
+                                // },
                                 onLongPress: () async {
                                   showDialog(
                                       context: context,

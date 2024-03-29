@@ -106,20 +106,20 @@ class _PostRequestScreenState extends State<PostRequestScreen> {
     }
   }
 
-  @override
-  void initState() {
-    super.initState();
-    Timer(const Duration(minutes: 10), () {
-      FirebaseFirestore.instance
-          .collection('posts')
-          .get()
-          .then((querySnapshot) {
-        for (var doc in querySnapshot.docs) {
-          deletePost(doc.id);
-        }
-      });
-    });
-  }
+  // @override
+  // void initState() {
+  //   super.initState();
+  //   Timer(const Duration(minutes: 10), () {
+  //     FirebaseFirestore.instance
+  //         .collection('posts')
+  //         .get()
+  //         .then((querySnapshot) {
+  //       for (var doc in querySnapshot.docs) {
+  //         deletePost(doc.id);
+  //       }
+  //     });
+  //   });
+  // }
 
   @override
   Widget build(BuildContext context) {

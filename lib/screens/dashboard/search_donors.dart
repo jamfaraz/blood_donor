@@ -58,7 +58,7 @@ class _SearchDonorsScreenState extends State<SearchDonorsScreen> {
         // elevation: 1,
       ),
       body: Padding(
-        padding: const EdgeInsets.all(12.0),
+        padding: const EdgeInsets.symmetric(horizontal: 8),
         child: SingleChildScrollView(
           physics: const BouncingScrollPhysics(),
           child: Column(
@@ -251,8 +251,8 @@ class _SearchDonorsScreenState extends State<SearchDonorsScreen> {
                                 color: Colors.white,
                                 elevation: 13,
                                 child: Container(
-                                  padding:
-                                      const EdgeInsets.symmetric(horizontal: 6),
+                                  // padding:
+                                  //     const EdgeInsets.symmetric(horizontal: 6),
                                   decoration: BoxDecoration(
                                     color: Colors.white,
                                     borderRadius: BorderRadius.circular(14),
@@ -336,9 +336,8 @@ class _SearchDonorsScreenState extends State<SearchDonorsScreen> {
                                                 ));
                                           },
                                           child: Container(
-                                            margin: const EdgeInsets.only(
-                                                left: 4),
-                                            width: 82,
+                                            padding: const EdgeInsets.symmetric(horizontal:
+                                                 6),
                                             height: 28,
                                             decoration: BoxDecoration(
                                               color: Colors.redAccent,
@@ -350,7 +349,7 @@ class _SearchDonorsScreenState extends State<SearchDonorsScreen> {
                                                 'Chat Now',
                                                 style: TextStyle(
                                                   color: Colors.white,
-                                                  fontSize: 13,
+                                                  fontSize: 12,
                                                 ),
                                               ),
                                             ),

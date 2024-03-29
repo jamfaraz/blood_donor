@@ -132,6 +132,8 @@ class DataController extends GetxController {
     final data = document.data()!;
       String userName = data['username'] ;
       String userProfileImage = data['image'] ;
+      String fcmToken = data['fcmToken'] ;
+      // String userId = data['userId'] ;
 
 
     try {
@@ -144,6 +146,7 @@ class DataController extends GetxController {
         'image': userProfileImage,
         'message': message,
         'name': userName,
+        'fcmToken': fcmToken,
         'time': DateTime.now()
       });
     } catch (e) {

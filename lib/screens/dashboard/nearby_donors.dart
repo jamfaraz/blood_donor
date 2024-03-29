@@ -103,7 +103,7 @@ class _NearbyDonorsScreenState extends State<NearbyDonorsScreen> {
         // elevation: 1,
       ),
       body: Padding(
-        padding: const EdgeInsets.all(12.0),
+        padding: const EdgeInsets.symmetric(horizontal: 8),
         child: SingleChildScrollView(
           physics: const BouncingScrollPhysics(),
           child: Column(
@@ -286,11 +286,10 @@ class _NearbyDonorsScreenState extends State<NearbyDonorsScreen> {
                                                               ));
                                                         },
                                                         child: Container(
-                                                          margin:
+                                                          padding:
                                                               const EdgeInsets
-                                                                  .only(
-                                                                  left: 4),
-                                                          width: 82,
+                                                                  .symmetric(
+                                                                  horizontal: 6),
                                                           height: 28,
                                                           decoration:
                                                               BoxDecoration(
@@ -307,7 +306,7 @@ class _NearbyDonorsScreenState extends State<NearbyDonorsScreen> {
                                                               style: TextStyle(
                                                                 color: Colors
                                                                     .white,
-                                                                fontSize: 13,
+                                                                fontSize: 12,
                                                               ),
                                                             ),
                                                           ),

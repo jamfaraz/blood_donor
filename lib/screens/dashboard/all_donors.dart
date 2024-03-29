@@ -78,7 +78,7 @@ class _AllDonorsScreenState extends State<AllDonorsScreen> {
         // elevation: 1,
       ),
       body: Padding(
-        padding: const EdgeInsets.all(12.0),
+        padding: const EdgeInsets.symmetric(horizontal: 8),
         child: SingleChildScrollView(
           physics: const BouncingScrollPhysics(),
           child: Column(
@@ -313,7 +313,7 @@ class _AllDonorsScreenState extends State<AllDonorsScreen> {
                                                         padding:
                                                             const EdgeInsets
                                                                 .only(
-                                                                bottom: 52),
+                                                                bottom: 2),
                                                         child: Column(
                                                           crossAxisAlignment:
                                                               CrossAxisAlignment
@@ -356,9 +356,7 @@ class _AllDonorsScreenState extends State<AllDonorsScreen> {
                                                 ));
                                           },
                                           child: Container(
-                                            margin: const EdgeInsets.only(
-                                                left: 4),
-                                            width: 82,
+                                          padding: EdgeInsets.all(4),
                                             height: 28,
                                             decoration: BoxDecoration(
                                               color: Colors.redAccent,
@@ -370,7 +368,7 @@ class _AllDonorsScreenState extends State<AllDonorsScreen> {
                                                 'Chat Now',
                                                 style: TextStyle(
                                                   color: Colors.white,
-                                                  fontSize: 13,
+                                                  fontSize: 12,
                                                 ),
                                               ),
                                             ),

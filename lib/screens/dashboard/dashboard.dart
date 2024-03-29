@@ -58,6 +58,30 @@ class _DashboardState extends State<Dashboard>
           Profile(),
         ],
       ),
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: selectedIndex,
         showUnselectedLabels: true,

@@ -206,7 +206,7 @@ class _MyRequestScreenState extends State<MyRequestScreen> {
                                                   CrossAxisAlignment.start,
                                               children: [
                                                 const Text(
-                                                  'Contact',
+                                                  'Blood type',
                                                   style: TextStyle(
                                                     color: Colors.green,
                                                     fontSize: 16,

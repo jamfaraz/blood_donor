@@ -272,6 +272,7 @@ class _PostRequestScreenState extends State<PostRequestScreen> {
                       hintText: 'Enter your contact',
                       border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8))),
+                          keyboardType: TextInputType.number,
                 ),
                 const SizedBox(
                   height: 10,

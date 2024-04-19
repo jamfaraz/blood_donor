@@ -92,13 +92,40 @@ class _SigninScreenState extends State<SigninScreen> {
                     const SizedBox(
                       height: 8,
                     ),
-                    PrimaryTextField(
+                      TextFormField(
                       controller: emailController,
-                      text: 'Enter your email',
-                      prefixIcon:  Icon(
-                        Icons.email,
-                        color: Colors.red.shade400,
-                      ),
+                      cursorColor: Colors.red,
+                      decoration: InputDecoration(
+                          contentPadding: EdgeInsets.symmetric(
+                            vertical: MediaQuery.of(context).size.width * 0.030,
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(33),
+                            borderSide: const BorderSide(
+                              color: Colors.black45,
+                            ),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(33),
+                            borderSide: const BorderSide(
+                              color: Colors.black,
+                            ),
+                          ),
+                          hintStyle: const TextStyle(
+                            color: Color(0xFF828A89),
+                            fontSize: 14,
+                            fontWeight: FontWeight.w400,
+                          ),
+                          isDense: true,
+                          prefixIcon: Icon(
+                            Icons.email,
+                            color: Colors.red,
+                          ),
+                          hintText: 'Enter your email',
+                          border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(33))),
+                              keyboardType: TextInputType.emailAddress,
+
                     ),
                     // TextFormField(controller: emailController,),
                     10.heightBox,

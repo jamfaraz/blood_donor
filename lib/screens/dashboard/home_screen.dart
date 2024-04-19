@@ -42,7 +42,7 @@ class _HomeScreenState extends State<HomeScreen> {
           lawyerLatitude,
           lawyerLongitude,
         );
-        return distance <= 10000; // 25 km in meters
+        return distance <= 25000; // 25 km in meters
       }).toList();
     });
   }

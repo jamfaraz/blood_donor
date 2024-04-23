@@ -72,8 +72,8 @@ class _AboutScreenState extends State<AboutScreen> {
                   color: Colors.red.shade400),
             ),
             const Text(
-              'Grocery App is your one-stop solution for all your grocery shopping needs. Find a wide range of products, place orders conveniently, and get them delivered to your doorstep.',
-              style: TextStyle(fontSize: 16),
+              'The software system is an online blood bank management system that helps in managing various blood bank operations effectively. ',
+              style: TextStyle(fontSize: 16)
             ),
             const SizedBox(height: 20),
              Text(
@@ -84,11 +84,11 @@ class _AboutScreenState extends State<AboutScreen> {
                   color: Colors.red.shade400),
             ),
             const Text(
-              'Email: yaarmuhammad00935@gmail.com',
+              'Email: yaarmuhammad@gmail.com',
               style: TextStyle(fontSize: 16),
             ),
             const Text(
-              'Phone: 0346523790',
+              'Phone: 03076300935',
               style: TextStyle(fontSize: 16),
             ),
             const SizedBox(height: 20),
@@ -132,7 +132,7 @@ class _AboutScreenState extends State<AboutScreen> {
                   style: TextStyle(fontSize: 17, color: Colors.blue),
                 ),
                  Text(
-              'Yaar Muhammad',
+              'University of Education',
               style: TextStyle(fontSize: 15, ),
             ),
               ],
@@ -144,7 +144,7 @@ class _AboutScreenState extends State<AboutScreen> {
                   style: TextStyle(fontSize: 17,color: Colors.blue ),
                              ),
                              Text(
-              'Bsf2005141',
+              'Bsf2004633',
               style: TextStyle(fontSize: 15, ),
             ),
                ],

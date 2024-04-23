@@ -100,10 +100,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                                               .start,
                                                       children: [
                                                         const Text(
-                                                          'Hello recipient,',
+                                                          'Blood Recipient,',
                                                           style: TextStyle(
-                                                            color: Color(
-                                                                0xFF0C253F),
+                                                            color: Colors.red,
                                                             fontSize: 12,
                                                             fontWeight:
                                                                 FontWeight.w600,
@@ -271,7 +270,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     color: Colors.white,
                                     child: Container(
                                       decoration: BoxDecoration(
-                                        color: const Color.fromARGB(255, 238, 5, 28),
+                                        color:  Colors.grey[100],
                                         borderRadius: BorderRadius.circular(10),
                                       ),
                                       padding: const EdgeInsets.symmetric(

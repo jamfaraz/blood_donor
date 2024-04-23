@@ -35,7 +35,7 @@ class _HelpScreenState extends State<HelpScreen> {
             ),
             SizedBox(width: Get.width * .2),
             const Text(
-              'About',
+              'Need Help',
               style: TextStyle(
                 color: Color(0xFF1A1A1A),
                 fontSize: 20,
@@ -72,11 +72,11 @@ class _HelpScreenState extends State<HelpScreen> {
             ),
             const SizedBox(height: 10),
             const Text(
-              'Email: support@groceryapp.com',
+              'Email: support@bloodPoint.com',
               style: TextStyle(fontSize: 16),
             ),
             const Text(
-              'Phone: 03065794369',
+              'Phone: 03076300935',
               style: TextStyle(fontSize: 16),
             ),
             const SizedBox(height: 20),
@@ -88,19 +88,19 @@ class _HelpScreenState extends State<HelpScreen> {
                   color: Colors.red.shade400),
             ),
             const Text(
-              '1. How do I place an order?',
+              '1. How do I get Blood?',
               style: TextStyle(fontSize: 16),
             ),
             const Text(
-              'To place an order, simply browse through the catalog, select the items you want, and proceed to checkout.',
+              'You have a Post Request option in botom nevigation bar go to there and creat post and donor will accept you request and contect with you.',
               style: TextStyle(fontSize: 16),
             ),
             const Text(
-              '2. How can I track my order?',
+              '2. How can I contect Directly?',
               style: TextStyle(fontSize: 16),
             ),
             const Text(
-              'Once your order is placed, you can track its status in the "Order History" section of the app.',
+              'Sure In Search opetion you will see the nearest persons if they are related to your blood catagory then you can contect with them.',
               style: TextStyle(fontSize: 16),
             ),
             const Text(
